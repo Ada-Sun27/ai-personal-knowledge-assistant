@@ -1,0 +1,10 @@
+node_modules
+target
+dist
+data
+.venv
+__pycache__
+.pytest_cache
+*.log
+*.tsbuildinfo
+.env

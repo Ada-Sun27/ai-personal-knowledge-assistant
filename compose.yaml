@@ -1,0 +1,49 @@
+name: ai-personal-knowledge-assistant
+services:
+  vectors:
+    build: ./vector-service
+    environment:
+      VECTOR_DATA_DIR: /app/data
+      OMP_NUM_THREADS: "1"
+    volumes:
+      - vector-data:/app/data
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health')"]
+      interval: 5s
+      timeout: 3s
+      retries: 12
+  backend:
+    build: ./backend
+    environment:
+      SPRING_PROFILES_ACTIVE: ${APP_PROFILE:-demo}
+      SERVER_ADDRESS: 0.0.0.0
+      APP_DATA_DIR: /app/data
+      VECTOR_URL: http://vectors:8000
+      APP_WEB_ORIGIN: http://localhost:5173
+      AWS_REGION: ${AWS_REGION:-us-east-1}
+      BEDROCK_CHAT_MODEL: ${BEDROCK_CHAT_MODEL:-amazon.nova-lite-v1:0}
+      AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID:-}
+      AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY:-}
+      AWS_SESSION_TOKEN: ${AWS_SESSION_TOKEN:-}
+    ports:
+      - "127.0.0.1:8080:8080"
+    volumes:
+      - backend-data:/app/data
+    depends_on:
+      vectors:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://127.0.0.1:8080/api/health"]
+      interval: 5s
+      timeout: 3s
+      retries: 24
+  web:
+    build: ./web
+    ports:
+      - "127.0.0.1:5173:80"
+    depends_on:
+      backend:
+        condition: service_healthy
+volumes:
+  vector-data:
+  backend-data:

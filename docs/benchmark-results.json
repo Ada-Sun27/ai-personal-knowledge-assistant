@@ -1,0 +1,35 @@
+{
+  "corpus": "seeded synthetic float32 vectors (not Bedrock embeddings)",
+  "count": 10000,
+  "dimensions": 1024,
+  "queries": 300,
+  "warmups": 30,
+  "topK": 5,
+  "concurrency": 1,
+  "faissThreads": 1,
+  "faissVersion": "1.10.0",
+  "python": "3.12.14",
+  "platform": "macOS-15.7.4-arm64-arm-64bit",
+  "cpuCount": 10,
+  "coldHttpMs": 38.81529200589284,
+  "httpRoundTripMs": {
+    "p50": 1.5346250438597053,
+    "p95": 1.6278916475130245,
+    "p99": 1.6763440624345092,
+    "max": 1.905083016026765
+  },
+  "serviceMs": {
+    "p50": 0.6027505150996149,
+    "p95": 0.6230544968275353,
+    "p99": 0.6512278073932973,
+    "max": 0.6799170514568686
+  },
+  "faissSearchMs": {
+    "p50": 0.5692705162800848,
+    "p95": 0.5853249749634415,
+    "p99": 0.6154687865637243,
+    "max": 0.6364589789882302
+  },
+  "p95Below100Ms": true,
+  "scope": "Warm single-client local vector HTTP retrieval; includes request/response serialization, transport, service processing and FAISS; excludes query embedding and LLM generation."
+}

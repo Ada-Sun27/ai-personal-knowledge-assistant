@@ -1,0 +1,71 @@
+name: CI
+on: [push, pull_request]
+permissions:
+  contents: read
+jobs:
+  backend:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+          cache: maven
+          cache-dependency-path: backend/pom.xml
+      - run: mvn -B -ntp verify
+        working-directory: backend
+      - uses: actions/upload-artifact@v4
+        with:
+          name: backend-jar
+          path: backend/target/knowledge-api-1.0.0.jar
+  vector:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: vector-service/requirements.txt
+      - run: pip install -r requirements.txt
+        working-directory: vector-service
+      - run: python -m pytest -q
+        working-directory: vector-service
+  web:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+      - run: npm ci
+        working-directory: web
+      - run: npm test && npm run build
+        working-directory: web
+  integration:
+    needs: [backend, vector, web]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: actions/download-artifact@v4
+        with:
+          name: backend-jar
+          path: backend/target
+      - run: pip install -r vector-service/requirements.txt
+      - run: python scripts/integration_test.py
+      - run: npm ci && npx playwright install --with-deps chromium
+        working-directory: web
+      - run: python scripts/ui_test.py
